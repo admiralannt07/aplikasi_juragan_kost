@@ -272,11 +272,11 @@ Setelah server berjalan, akses dokumentasi interaktif di:
 *Dashboard dengan statistik real-time dan kartu kamar interaktif*
 
 ### Data Kamar
-![Kamar](https://via.placeholder.com/800x400/0f172a/f59e0b?text=Data+Kamar)
+<img width="1919" height="858" alt="image" src="https://github.com/user-attachments/assets/e27f596a-7642-4a3a-a440-4121cf1e651b" />
 *Tabel data kamar dengan pencarian dan filter*
 
 ### Laporan Keuangan
-![Keuangan](https://via.placeholder.com/800x400/0f172a/f59e0b?text=Laporan+Keuangan)
+<img width="1919" height="858" alt="image" src="https://github.com/user-attachments/assets/02898909-cf51-4bab-bba0-2856a5dad010" />
 *Grafik pendapatan dan riwayat transaksi*
 
 ---
