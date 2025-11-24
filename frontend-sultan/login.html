@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login SULTAN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins'], display: ['Montserrat'] },
+                    colors: { sultan: { dark: '#0f172a', gold: '#f59e0b' } }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-sultan-dark h-screen flex items-center justify-center relative overflow-hidden">
+    
+    <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-sultan-gold rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+
+    <div class="card w-96 bg-white/10 backdrop-blur-lg shadow-2xl border border-white/20 z-10">
+        <div class="card-body items-center text-center text-white">
+            <h1 class="font-display text-4xl font-bold mb-1">SULTAN<span class="text-sultan-gold">.</span></h1>
+            <p class="text-slate-300 text-xs tracking-widest uppercase mb-8">Estate Management System</p>
+
+            <form id="login-form" class="w-full space-y-4">
+                <div class="form-control w-full">
+                    <input type="text" id="username" placeholder="Username" class="input input-bordered bg-white/20 border-white/30 text-white placeholder-slate-300 focus:bg-white/30 focus:border-sultan-gold" required />
+                </div>
+                <div class="form-control w-full">
+                    <input type="password" id="password" placeholder="Password" class="input input-bordered bg-white/20 border-white/30 text-white placeholder-slate-300 focus:bg-white/30 focus:border-sultan-gold" required />
+                </div>
+                <button type="submit" class="btn bg-sultan-gold hover:bg-yellow-500 border-none text-sultan-dark font-bold w-full mt-4 shadow-lg shadow-orange-500/50">
+                    MASUK JURAGAN
+                </button>
+            </form>
+            <div id="error-msg" class="text-rose-400 text-xs mt-4 hidden">Username/Password Salah!</div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const errorMsg = document.getElementById('error-msg');
+            const btn = e.target.querySelector('button');
+
+            btn.innerHTML = '<span class="loading loading-spinner"></span> Loading...';
+            
+            try {
+                // Tembak API Auth Django
+                const response = await fetch('http://127.0.0.1:8000/api/auth/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+
+                const data = await response.json();
+
+                if (data.token) {
+                    // SIMPAN TOKEN DI SAKU (LocalStorage)
+                    localStorage.setItem('sultan_token', data.token);
+                    window.location.href = 'index.html'; // Pindah ke Dashboard
+                } else {
+                    throw new Error('Gagal Login');
+                }
+            } catch (err) {
+                errorMsg.classList.remove('hidden');
+                btn.innerHTML = 'MASUK JURAGAN';
+            }
+        });
+    </script>
+</body>
+</html>

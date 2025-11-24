@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SULTAN Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Poppins:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        display: ['Montserrat', 'sans-serif'],
+                    },
+                    colors: {
+                        sultan: {
+                            dark: '#0f172a', // Slate-900
+                            gold: '#f59e0b', // Amber-500
+                            bg: '#f8fafc',   // Slate-50
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .font-display {
+            font-family: 'Montserrat', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-sultan-bg text-slate-800 h-screen flex overflow-hidden">
+
+    <aside class="w-64 bg-sultan-dark text-white flex flex-col shadow-2xl z-20">
+        <div class="p-6 border-b border-slate-700">
+            <h1 class="font-display text-3xl font-bold tracking-wider text-center">
+                SULTAN<span class="text-sultan-gold">.</span>
+            </h1>
+            <p class="text-xs text-slate-400 text-center mt-1 tracking-widest">ESTATE MANAGEMENT</p>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <div class="menu text-slate-300">
+                <li class="menu-title text-slate-500 text-xs font-bold uppercase mb-2">Main Menu</li>
+                <li><a id="menu-dashboard" onclick="switchPage('page-dashboard', this)"
+                        class="active:bg-indigo-600 hover:text-white hover:bg-slate-800 rounded-lg"><i
+                            class="fas fa-th-large w-5"></i> Dashboard</a></li>
+                <li><a id="menu-kamar" onclick="switchPage('page-kamar', this)"
+                        class="hover:text-white hover:bg-slate-800 rounded-lg"><i class="fas fa-door-closed w-5"></i>
+                        Data Kamar</a></li>
+                <li><a id="menu-penyewa" onclick="switchPage('page-penyewa', this)"
+                        class="hover:text-white hover:bg-slate-800 rounded-lg"><i class="fas fa-users w-5"></i>
+                        Penyewa</a></li>
+                <li><a id="menu-keuangan" onclick="switchPage('page-keuangan', this)"
+                        class="hover:text-white hover:bg-slate-800 rounded-lg"><i
+                            class="fas fa-money-bill-wave w-5"></i> Keuangan</a></li>
+            </div>
+        </nav>
+
+        <div class="p-4 border-t border-slate-700">
+            <button onclick="logout()" class="btn btn-outline btn-error btn-sm w-full gap-2 text-white">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative overflow-hidden">
+        <header
+            class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-8 z-10 sticky top-0">
+            <div>
+                <h2 class="font-display text-2xl font-bold text-slate-800">Overview</h2>
+                <p class="text-xs text-slate-500">Halo Juragan, pantau asetmu hari ini.</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="badge badge-primary badge-outline p-3 font-medium" id="tanggal-hari-ini">...</div>
+                <div class="avatar placeholder">
+                    <div class="bg-indigo-600 text-white rounded-full w-10 ring ring-offset-2 ring-indigo-100">
+                        <span class="text-lg font-bold">J</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-8 relative">
+
+            <div id="page-dashboard" class="page-content space-y-8">
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div
+                        class="card bg-white shadow-sm border border-slate-100 p-6 rounded-2xl hover:shadow-md transition-all group">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Aset</p>
+                                <h3 class="font-display text-4xl font-bold text-slate-800" id="total-kamar">0</h3>
+                            </div>
+                            <div
+                                class="p-3 bg-indigo-50 text-indigo-600 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-building text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-xs text-slate-500">Unit Kamar Terdaftar</div>
+                    </div>
+                    <div
+                        class="card bg-white shadow-sm border border-slate-100 p-6 rounded-2xl hover:shadow-md transition-all group">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-bold text-rose-400 uppercase tracking-wider mb-1">Terisi (Cuan)
+                                </p>
+                                <h3 class="font-display text-4xl font-bold text-slate-800" id="total-isi">0</h3>
+                            </div>
+                            <div
+                                class="p-3 bg-rose-50 text-rose-600 rounded-xl group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-user-check text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-xs text-slate-500 flex items-center gap-1">
+                            <div class="badge badge-xs badge-error"></div> Unit Menghasilkan Uang
+                        </div>
+                    </div>
+                    <div
+                        class="card bg-white shadow-sm border border-slate-100 p-6 rounded-2xl hover:shadow-md transition-all group">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-bold text-teal-400 uppercase tracking-wider mb-1">Kosong (Siap
+                                    Jual)</p>
+                                <h3 class="font-display text-4xl font-bold text-slate-800" id="total-kosong">0</h3>
+                            </div>
+                            <div
+                                class="p-3 bg-teal-50 text-teal-600 rounded-xl group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-door-open text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-xs text-slate-500 flex items-center gap-1">
+                            <div class="badge badge-xs badge-success"></div> Unit Siap Huni
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <div class="tabs tabs-boxed bg-white border border-slate-200 p-1 rounded-xl">
+                        <a class="tab tab-active rounded-lg" onclick="filterKamar('ALL')">Semua</a>
+                        <a class="tab rounded-lg" onclick="filterKamar('KOSONG')">Kosong</a>
+                        <a class="tab rounded-lg" onclick="filterKamar('ISI')">Terisi</a>
+                    </div>
+                    <button onclick="openAddKamarModal()"
+                        class="btn btn-primary bg-indigo-600 border-none hover:bg-indigo-700 shadow-lg shadow-indigo-200 text-white gap-2 rounded-xl">
+                        <i class="fas fa-plus"></i> Tambah Kamar
+                    </button>
+                </div>
+
+                <div id="kamar-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-12">
+                    <div class="col-span-full text-center py-12 text-slate-400 animate-pulse">
+                        Memuat data aset juragan...
+                    </div>
+                </div>
+
+            </div>
+            <div id="page-kamar" class="page-content hidden p-8 bg-white rounded-2xl shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+                    <div class="space-y-2 w-full md:w-2/3">
+                        <h2 class="text-2xl font-bold font-display text-slate-800">Master Data Kamar</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Pencarian</span></label>
+                                <input id="kamar-search" type="text" class="input input-bordered w-full"
+                                    placeholder="Cari nomor/tipe/status" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Status</span></label>
+                                <select id="kamar-status" class="select select-bordered w-full">
+                                    <option value="ALL">Semua</option>
+                                    <option value="KOSONG">Kosong</option>
+                                    <option value="ISI">Terisi</option>
+                                    <option value="MAINTENANCE">Maintenance</option>
+                                </select>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Per Halaman</span></label>
+                                <select id="kamar-perpage" class="select select-bordered w-full">
+                                    <option>5</option>
+                                    <option selected>10</option>
+                                    <option>20</option>
+                                    <option>50</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-auto">
+                        <button onclick="openAddKamarModal()"
+                            class="btn btn-primary bg-indigo-600 border-none text-white w-full md:w-auto">
+                            <i class="fas fa-plus"></i> Tambah Kamar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table class="table w-full">
+                        <thead>
+                            <tr>
+                                <th>Nomor</th>
+                                <th>Lantai</th>
+                                <th>Tipe</th>
+                                <th>Status</th>
+                                <th>Harga/Bulan</th>
+                                <th class="text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kamar-table-body">
+                            <tr>
+                                <td colspan="6" class="text-center text-slate-400 py-6">Memuat data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex items-center justify-between mt-4">
+                    <div id="kamar-pagination-info" class="text-sm text-slate-500"></div>
+                    <div class="join">
+                        <button id="kamar-prev" class="btn btn-sm join-item">«</button>
+                        <button id="kamar-page" class="btn btn-sm join-item btn-ghost">1</button>
+                        <button id="kamar-next" class="btn btn-sm join-item">»</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-penyewa" class="page-content hidden p-8 bg-white rounded-2xl shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+                    <div class="space-y-2 w-full md:w-2/3">
+                        <h2 class="text-2xl font-bold font-display text-slate-800">Data Penyewa Aktif</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Pencarian</span></label>
+                                <input id="penyewa-search" type="text" class="input input-bordered w-full"
+                                    placeholder="Cari nama/HP/kamar" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Per Halaman</span></label>
+                                <select id="penyewa-perpage" class="select select-bordered w-full">
+                                    <option>5</option>
+                                    <option selected>10</option>
+                                    <option>20</option>
+                                    <option>50</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table class="table w-full">
+                        <thead>
+                            <tr>
+                                <th>Nama</th>
+                                <th>Nomor HP</th>
+                                <th>Kamar</th>
+                                <th>Masuk</th>
+                                <th>Durasi</th>
+                                <th>Habis</th>
+                                <th class="text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="penyewa-table-body">
+                            <tr>
+                                <td colspan="7" class="text-center text-slate-400 py-6">Memuat data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex items-center justify-between mt-4">
+                    <div id="penyewa-pagination-info" class="text-sm text-slate-500"></div>
+                    <div class="join">
+                        <button id="penyewa-prev" class="btn btn-sm join-item">«</button>
+                        <button id="penyewa-page" class="btn btn-sm join-item btn-ghost">1</button>
+                        <button id="penyewa-next" class="btn btn-sm join-item">»</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-keuangan" class="page-content hidden p-8 space-y-8">
+                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold font-display text-slate-800">Laporan Keuangan</h2>
+                        <p class="text-xs text-slate-500">Pantau arus kas masuk dari penyewa.</p>
+                    </div>
+                    <button onclick="openPaymentModal()"
+                        class="btn btn-primary bg-emerald-600 border-none hover:bg-emerald-700 text-white gap-2 shadow-lg shadow-emerald-200 rounded-xl">
+                        <i class="fas fa-plus-circle"></i> Catat Pemasukan
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="card bg-white shadow-sm border border-slate-100 p-6 rounded-2xl">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Pendapatan
+                                    Bulan Ini</p>
+                                <h3 class="font-display text-3xl font-bold text-slate-800" id="keuangan-bulan-ini">Rp 0
+                                </h3>
+                            </div>
+                            <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                                <i class="fas fa-calendar-day text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card bg-white shadow-sm border border-slate-100 p-6 rounded-2xl">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total
+                                    Pendapatan</p>
+                                <h3 class="font-display text-3xl font-bold text-slate-800" id="keuangan-total">Rp 0</h3>
+                            </div>
+                            <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                                <i class="fas fa-wallet text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <h3 class="font-bold text-lg text-slate-800 mb-4">Grafik Pendapatan</h3>
+                        <div class="relative h-80 w-full">
+                            <canvas id="chartPendapatan"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full">
+                        <h3 class="font-bold text-lg text-slate-800 mb-4">Riwayat Transaksi</h3>
+                        <div class="overflow-y-auto flex-1 pr-2 space-y-3" id="list-transaksi">
+                            <div class="text-center text-slate-400 py-8 text-sm">Belum ada data transaksi.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <dialog id="modal_detail" class="modal">
+        <div class="modal-box bg-white rounded-2xl p-0 overflow-hidden">
+            <div class="bg-indigo-600 p-6 text-white">
+                <h3 class="font-bold text-lg font-display" id="modal-title">Judul Modal</h3>
+                <p class="text-xs opacity-80" id="modal-subtitle">Subtitle</p>
+            </div>
+            <div class="p-6 space-y-4">
+                <div id="modal-content"></div>
+            </div>
+            <div class="modal-action p-6 pt-0">
+                <button class="btn btn-sm btn-ghost text-slate-500"
+                    onclick="document.getElementById('modal_detail').close()">Tutup</button>
+                <button class="btn btn-sm btn-primary bg-indigo-600 border-none text-white hidden">Edit Data</button>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="modal_payment" class="modal">
+        <div class="modal-box bg-white rounded-2xl p-0 overflow-hidden">
+            <div class="bg-emerald-600 p-6 text-white">
+                <h3 class="font-bold text-lg font-display">Input Pembayaran</h3>
+                <p class="text-xs opacity-80">Catat uang masuk dari penyewa</p>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="form-control">
+                    <label class="label"><span class="label-text">Pilih Penyewa</span></label>
+                    <select id="pay-penyewa-id" class="select select-bordered w-full bg-slate-50">
+                        <option value="">-- Pilih Penyewa --</option>
+                    </select>
+                </div>
+
+                <div class="form-control">
+                    <label class="label"><span class="label-text">Jumlah Bayar (Rp)</span></label>
+                    <input type="number" id="pay-jumlah" class="input input-bordered w-full"
+                        placeholder="Contoh: 1500000" />
+                </div>
+
+                <div class="form-control">
+                    <label class="label"><span class="label-text">Keterangan</span></label>
+                    <textarea id="pay-keterangan" class="textarea textarea-bordered h-24"
+                        placeholder="Contoh: Bayar Kost Bulan Maret 2025"></textarea>
+                </div>
+            </div>
+            <div class="modal-action p-6 pt-0">
+                <button class="btn btn-sm btn-ghost text-slate-500"
+                    onclick="document.getElementById('modal_payment').close()">Batal</button>
+                <button class="btn btn-sm btn-primary bg-emerald-600 border-none text-white"
+                    onclick="submitPayment()">Simpan Pembayaran</button>
+            </div>
+        </div>
+    </dialog>
+
+    <script defer src="app.js"></script>
+</body>
+
+</html>
