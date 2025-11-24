@@ -268,7 +268,8 @@ Setelah server berjalan, akses dokumentasi interaktif di:
 ## 🎨 Screenshots
 
 ### Dashboard Overview
-![Dashboard](https://via.placeholder.com/800x400/0f172a/f59e0b?text=Dashboard+Overview)
+![Dashboard](<img width="1919" height="855" alt="image" src="https://github.com/user-attachments/assets/987b02ec-bd8d-4351-811a-d11b70238e50" />
+)
 *Dashboard dengan statistik real-time dan kartu kamar interaktif*
 
 ### Data Kamar
