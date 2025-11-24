@@ -1,10 +1,19 @@
 <!DOCTYPE html>
 <html lang="id" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login SULTAN</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon.png">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Poppins:wght@300;400;500&display=swap"
+        rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -18,10 +27,15 @@
         }
     </script>
 </head>
+
 <body class="bg-sultan-dark h-screen flex items-center justify-center relative overflow-hidden">
-    
-    <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-sultan-gold rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+
+    <div
+        class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob">
+    </div>
+    <div
+        class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-sultan-gold rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000">
+    </div>
 
     <div class="card w-96 bg-white/10 backdrop-blur-lg shadow-2xl border border-white/20 z-10">
         <div class="card-body items-center text-center text-white">
@@ -30,12 +44,17 @@
 
             <form id="login-form" class="w-full space-y-4">
                 <div class="form-control w-full">
-                    <input type="text" id="username" placeholder="Username" class="input input-bordered bg-white/20 border-white/30 text-white placeholder-slate-300 focus:bg-white/30 focus:border-sultan-gold" required />
+                    <input type="text" id="username" placeholder="Username"
+                        class="input input-bordered bg-white/20 border-white/30 text-white placeholder-slate-300 focus:bg-white/30 focus:border-sultan-gold"
+                        required />
                 </div>
                 <div class="form-control w-full">
-                    <input type="password" id="password" placeholder="Password" class="input input-bordered bg-white/20 border-white/30 text-white placeholder-slate-300 focus:bg-white/30 focus:border-sultan-gold" required />
+                    <input type="password" id="password" placeholder="Password"
+                        class="input input-bordered bg-white/20 border-white/30 text-white placeholder-slate-300 focus:bg-white/30 focus:border-sultan-gold"
+                        required />
                 </div>
-                <button type="submit" class="btn bg-sultan-gold hover:bg-yellow-500 border-none text-sultan-dark font-bold w-full mt-4 shadow-lg shadow-orange-500/50">
+                <button type="submit"
+                    class="btn bg-sultan-gold hover:bg-yellow-500 border-none text-sultan-dark font-bold w-full mt-4 shadow-lg shadow-orange-500/50">
                     MASUK JURAGAN
                 </button>
             </form>
@@ -52,7 +71,7 @@
             const btn = e.target.querySelector('button');
 
             btn.innerHTML = '<span class="loading loading-spinner"></span> Loading...';
-            
+
             try {
                 // Tembak API Auth Django
                 const response = await fetch('http://127.0.0.1:8000/api/auth/', {
@@ -77,4 +96,5 @@
         });
     </script>
 </body>
+
 </html>
