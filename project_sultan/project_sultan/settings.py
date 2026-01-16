@@ -10,7 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+from datetime import timedelta
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +26,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-xpl1p!xbn)mhyo6oai+szf^1=(u@z&-=gervn7xe03^9jeoq_e'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-xpl1p!xbn)mhyo6oai+szf^1=(u@z&-=gervn7xe03^9jeoq_e')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -38,14 +44,31 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',     # Required by allauth
+    
     # --- 3rd Party Apps ---
     'rest_framework',
-    'rest_framework.authtoken', # Buat login nanti
-    'django_filters',           # Buat searching
-    'drf_spectacular',          # Buat dokumentasi
+    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',  # For logout/token rotation
+    'django_filters',
+    'drf_spectacular',
+    
+    # --- Authentication (dj-rest-auth + allauth) ---
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.facebook',
+    
     # --- Local Apps (Aplikasi Kita) ---
     'kost',
 ]
+
+# Required by django-allauth
+SITE_ID = 1
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -56,6 +79,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # Required by allauth
 ]
 
 ROOT_URLCONF = 'project_sultan.urls'
@@ -113,7 +137,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Jakarta'
 
 USE_I18N = True
 
@@ -130,13 +154,17 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# --- KONFIGURASI REST FRAMEWORK ---
+
+# ============================================================
+# REST FRAMEWORK CONFIGURATION
+# ============================================================
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',  # JWT via HttpOnly cookies
+        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated', # Default digembok, aman.
+        'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
@@ -144,18 +172,158 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
-# --- KONFIGURASI DOKUMENTASI ---
+
+# ============================================================
+# JWT CONFIGURATION (SimpleJWT)
+# ============================================================
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+}
+
+
+# ============================================================
+# DJ-REST-AUTH CONFIGURATION
+# ============================================================
+REST_AUTH = {
+    'USE_JWT': True,
+    'JWT_AUTH_COOKIE': 'sultan-access',
+    'JWT_AUTH_REFRESH_COOKIE': 'sultan-refresh',
+    'JWT_AUTH_HTTPONLY': True,
+    'JWT_AUTH_SAMESITE': 'Lax',
+    'JWT_AUTH_SECURE': False,  # Set to True in production with HTTPS
+    'JWT_AUTH_RETURN_EXPIRATION': True,
+    
+    # Token serializers
+    'JWT_TOKEN_CLAIMS_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenObtainPairSerializer',
+}
+
+
+# ============================================================
+# DJANGO-ALLAUTH CONFIGURATION
+# ============================================================
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# Account settings
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'  # Allow login with username OR email
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'optional'  # Set to 'mandatory' in production
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+
+# Social account settings
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+
+# Social providers configuration (loaded from .env)
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': os.getenv('GOOGLE_CLIENT_ID', ''),
+            'secret': os.getenv('GOOGLE_CLIENT_SECRET', ''),
+            'key': ''
+        },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    },
+    'facebook': {
+        'APP': {
+            'client_id': os.getenv('FACEBOOK_APP_ID', ''),
+            'secret': os.getenv('FACEBOOK_APP_SECRET', ''),
+            'key': ''
+        },
+        'METHOD': 'oauth2',
+        'SCOPE': ['email', 'public_profile'],
+        'FIELDS': ['id', 'email', 'name', 'first_name', 'last_name'],
+        'VERSION': 'v18.0',
+    }
+}
+
+
+# ============================================================
+# CORS CONFIGURATION
+# ============================================================
+CORS_ALLOW_CREDENTIALS = True  # Required for cookies
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+
+# ============================================================
+# CSRF CONFIGURATION
+# ============================================================
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False  # Frontend needs to read CSRF token
+
+
+# ============================================================
+# EMAIL CONFIGURATION (Development - Console Backend)
+# ============================================================
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# For production, use SMTP:
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+# EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+
+
+# ============================================================
+# DOCUMENTATION (Swagger)
+# ============================================================
 SPECTACULAR_SETTINGS = {
     'TITLE': 'SULTAN API (Juragan Kost)',
     'DESCRIPTION': 'Sistem Unggulan Tata Kelola Hunian',
     'VERSION': '1.0.0',
 }
 
-# --- KONFIGURASI CORS (Development Only) ---
-CORS_ALLOW_ALL_ORIGINS = True
 
-# settings.py paling bawah
-import os
-
+# ============================================================
+# MEDIA FILES
+# ============================================================
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+SOCIALACCOUNT_LOGIN_ON_GET = True
+
+# ============================================================
+# LOGIN/LOGOUT REDIRECTS
+# ============================================================
+# After social login, redirect to Vue frontend
+LOGIN_REDIRECT_URL = 'http://localhost:5173/'
+ACCOUNT_LOGOUT_REDIRECT_URL = 'http://localhost:5173/login'
+
+# Custom adapters for handling JWT generation on login redirect
+ACCOUNT_ADAPTER = 'project_sultan.adapters.CustomAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'project_sultan.adapters.CustomSocialAccountAdapter'

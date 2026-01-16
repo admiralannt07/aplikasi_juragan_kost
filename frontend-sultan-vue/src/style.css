@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+/* ===== SULTAN THEME ===== */
+@theme {
+  /* Colors - preserved from original */
+  --color-sultan-dark: #0f172a;
+  --color-sultan-gold: #f59e0b;
+  --color-sultan-bg: #f8fafc;
+  
+  /* Semantic colors */
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+  
+  /* Font families */
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ===== BASE STYLES ===== */
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-sultan-bg);
+  color: #1e293b;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+/* ===== UTILITIES ===== */
+.font-display {
+  font-family: var(--font-display);
+}

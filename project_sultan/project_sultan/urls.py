@@ -18,23 +18,40 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from rest_framework.authtoken.views import obtain_auth_token
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # Endpoint Login (Dapet Token)
-    path('api/auth/', obtain_auth_token, name='api_token_auth'),
+    # ============================================================
+    # AUTHENTICATION ENDPOINTS (dj-rest-auth + JWT)
+    # ============================================================
+    # Login/Logout/User (JWT with HttpOnly cookies)
+    path('api/auth/', include('dj_rest_auth.urls')),
     
-    # Endpoint API Utama
+    # Registration (with email verification)
+    path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
+    
+    # Social Authentication (Google, Facebook)
+    # allauth requires /accounts/ path for OAuth login flow
+    path('accounts/', include('allauth.urls')),
+    
+    # DRF Browsable API login (for development)
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    
+    # ============================================================
+    # API ENDPOINTS
+    # ============================================================
     path('api/', include('kost.api_urls')),
     
-    # Dokumentasi Swagger (Biar keren)
+    # ============================================================
+    # DOCUMENTATION (Swagger)
+    # ============================================================
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/docs/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 
-# Konfigurasi buat nampilin file Media (Foto KTP/Bukti Transfer) pas Development
+# Serve media files during development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
