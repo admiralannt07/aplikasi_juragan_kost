@@ -56,18 +56,18 @@ const router = createRouter({
 router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
   
-  // Check for access_token in URL query params (from social auth redirect)
-  // Use to.query from Vue Router instead of window.location
+  // Check for tokens in URL query params (from social auth redirect)
   const accessTokenFromUrl = to.query.access_token as string | undefined
+  const refreshTokenFromUrl = to.query.refresh_token as string | undefined
   
   if (accessTokenFromUrl) {
-    console.log('[OAuth] Captured access token from URL redirect')
+    console.log('[OAuth] Captured tokens from URL redirect')
     
-    // Social auth callback - capture token
-    authStore.setAccessToken(accessTokenFromUrl)
+    // Social auth callback - capture both tokens
+    authStore.handleSocialAuthCallback(accessTokenFromUrl, refreshTokenFromUrl)
     await authStore.fetchUser()
     
-    // Redirect to dashboard without token in URL (security)
+    // Redirect to dashboard without tokens in URL (security)
     next({ name: 'dashboard', replace: true })
     return
   }

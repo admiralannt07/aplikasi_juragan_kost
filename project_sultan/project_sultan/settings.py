@@ -203,6 +203,9 @@ REST_AUTH = {
     'JWT_AUTH_SECURE': False,  # Set to True in production with HTTPS
     'JWT_AUTH_RETURN_EXPIRATION': True,
     
+    # Password change settings
+    'OLD_PASSWORD_FIELD_ENABLED': True,
+    
     # Token serializers
     'JWT_TOKEN_CLAIMS_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenObtainPairSerializer',
 }

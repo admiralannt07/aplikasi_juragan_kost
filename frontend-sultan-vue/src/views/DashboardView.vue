@@ -4,10 +4,12 @@ import { motion } from 'motion-v'
 import { Building, UserCheck, DoorOpen, Plus, X, Layers, Eye, Pencil, Trash2 } from 'lucide-vue-next'
 import { useKamarStore, type Kamar, type TipeKamar } from '@/stores/kamar'
 import { usePenyewaStore, type Penyewa } from '@/stores/penyewa'
+import { useToastStore } from '@/stores/toast'
 import { formatRupiah } from '@/services/utils'
 
 const kamarStore = useKamarStore()
 const penyewaStore = usePenyewaStore()
+const toast = useToastStore()
 const activeFilter = ref<'ALL' | 'KOSONG' | 'ISI'>('ALL')
 
 // Modal states
@@ -89,7 +91,7 @@ function openEditTipeModal(tipe: TipeKamar) {
 // === SUBMIT HANDLERS ===
 async function submitAddKamar() {
   if (!addKamarForm.value.nomor_kamar || !addKamarForm.value.tipe) {
-    alert('Nomor kamar dan tipe wajib diisi!')
+    toast.warning('Validasi', 'Nomor kamar dan tipe wajib diisi!')
     return
   }
   isSubmitting.value = true
@@ -101,10 +103,10 @@ async function submitAddKamar() {
       status: addKamarForm.value.status as 'KOSONG' | 'ISI' | 'MAINTENANCE'
     })
     showAddKamarModal.value = false
-    alert('Kamar berhasil ditambahkan!')
+    toast.success('Berhasil', 'Kamar berhasil ditambahkan!')
   } catch (e) {
     console.error(e)
-    alert('Gagal menambah kamar')
+    toast.error('Gagal', 'Gagal menambah kamar')
   } finally {
     isSubmitting.value = false
   }
@@ -112,11 +114,11 @@ async function submitAddKamar() {
 
 async function submitCheckIn() {
   if (!checkInForm.value.nama_lengkap || !checkInForm.value.nomor_hp) {
-    alert('Nama dan nomor HP wajib diisi!')
+    toast.warning('Validasi', 'Nama dan nomor HP wajib diisi!')
     return
   }
   if (!selectedKamar.value) {
-    alert('Kamar tidak valid!')
+    toast.error('Error', 'Kamar tidak valid!')
     return
   }
   isSubmitting.value = true
@@ -129,10 +131,10 @@ async function submitCheckIn() {
     })
     await kamarStore.fetchAll()
     showCheckInModal.value = false
-    alert('Check-In berhasil!')
+    toast.success('Check-In Berhasil', 'Penyewa baru telah ditambahkan.')
   } catch (e) {
     console.error(e)
-    alert('Gagal Check-In')
+    toast.error('Gagal', 'Gagal melakukan check-in')
   } finally {
     isSubmitting.value = false
   }
@@ -140,7 +142,7 @@ async function submitCheckIn() {
 
 async function submitCheckOut() {
   if (!selectedPenyewa.value) {
-    alert('Data penyewa tidak ditemukan!')
+    toast.error('Error', 'Data penyewa tidak ditemukan!')
     return
   }
   
@@ -151,10 +153,10 @@ async function submitCheckOut() {
     showDetailModal.value = false
     selectedPenyewa.value = null
     selectedKamar.value = null
-    alert('Check-Out berhasil! Kamar sekarang kosong.')
+    toast.success('Check-Out Berhasil', 'Kamar sekarang kosong.')
   } catch (e) {
     console.error(e)
-    alert('Gagal Check-Out')
+    toast.error('Gagal', 'Gagal melakukan check-out')
   } finally {
     isSubmitting.value = false
   }
@@ -162,7 +164,7 @@ async function submitCheckOut() {
 
 async function submitAddTipe() {
   if (!addTipeForm.value.nama_tipe || !addTipeForm.value.harga_per_bulan) {
-    alert('Nama tipe dan harga wajib diisi!')
+    toast.warning('Validasi', 'Nama tipe dan harga wajib diisi!')
     return
   }
   isSubmitting.value = true
@@ -173,10 +175,10 @@ async function submitAddTipe() {
       fasilitas: addTipeForm.value.fasilitas
     })
     showAddTipeModal.value = false
-    alert('Tipe Kamar berhasil ditambahkan!')
+    toast.success('Berhasil', 'Tipe Kamar berhasil ditambahkan!')
   } catch (e) {
     console.error(e)
-    alert('Gagal menambah tipe kamar')
+    toast.error('Gagal', 'Gagal menambah tipe kamar')
   } finally {
     isSubmitting.value = false
   }
@@ -192,10 +194,10 @@ async function submitEditTipe() {
       fasilitas: editTipeForm.value.fasilitas
     })
     showEditTipeModal.value = false
-    alert('Tipe Kamar berhasil diperbarui!')
+    toast.success('Berhasil', 'Tipe Kamar berhasil diperbarui!')
   } catch (e) {
     console.error(e)
-    alert('Gagal memperbarui tipe kamar')
+    toast.error('Gagal', 'Gagal memperbarui tipe kamar')
   } finally {
     isSubmitting.value = false
   }
@@ -205,10 +207,10 @@ async function deleteTipe(tipe: TipeKamar) {
   if (!confirm(`Yakin hapus tipe "${tipe.nama_tipe}"?`)) return
   try {
     await kamarStore.removeTipeKamar(tipe.id)
-    alert('Tipe Kamar berhasil dihapus!')
+    toast.success('Berhasil', 'Tipe Kamar berhasil dihapus!')
   } catch (e) {
     console.error(e)
-    alert('Gagal menghapus tipe kamar. Mungkin masih digunakan oleh kamar.')
+    toast.error('Gagal', 'Gagal menghapus tipe kamar. Mungkin masih digunakan oleh kamar.')
   }
 }
 

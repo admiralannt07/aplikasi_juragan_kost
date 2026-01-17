@@ -3,16 +3,16 @@ import { ref, onMounted } from 'vue'
 import { motion } from 'motion-v'
 import { User, Mail, Calendar, Shield, Key, Save, X, Camera } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
+import { useToastStore } from '@/stores/toast'
 import api from '@/services/api'
 
 const authStore = useAuthStore()
+const toast = useToastStore()
 
 // State
 const isEditing = ref(false)
 const isSaving = ref(false)
 const showPasswordModal = ref(false)
-const successMessage = ref('')
-const errorMessage = ref('')
 
 // Form data
 const profileForm = ref({
@@ -40,8 +40,6 @@ onMounted(() => {
 
 function startEditing() {
   isEditing.value = true
-  errorMessage.value = ''
-  successMessage.value = ''
 }
 
 function cancelEditing() {
@@ -57,8 +55,6 @@ function cancelEditing() {
 
 async function saveProfile() {
   isSaving.value = true
-  errorMessage.value = ''
-  successMessage.value = ''
 
   try {
     await api.patch('auth/user/', {
@@ -68,11 +64,9 @@ async function saveProfile() {
     
     await authStore.fetchUser()
     isEditing.value = false
-    successMessage.value = 'Profil berhasil diperbarui!'
-    
-    setTimeout(() => { successMessage.value = '' }, 3000)
+    toast.success('Berhasil', 'Profil berhasil diperbarui!')
   } catch {
-    errorMessage.value = 'Gagal menyimpan profil'
+    toast.error('Gagal', 'Gagal menyimpan profil')
   } finally {
     isSaving.value = false
   }
@@ -80,12 +74,11 @@ async function saveProfile() {
 
 async function changePassword() {
   if (passwordForm.value.new_password1 !== passwordForm.value.new_password2) {
-    errorMessage.value = 'Password baru tidak cocok!'
+    toast.warning('Validasi', 'Password baru tidak cocok!')
     return
   }
 
   isSaving.value = true
-  errorMessage.value = ''
 
   try {
     await api.post('auth/password/change/', {
@@ -96,17 +89,16 @@ async function changePassword() {
     
     showPasswordModal.value = false
     passwordForm.value = { old_password: '', new_password1: '', new_password2: '' }
-    successMessage.value = 'Password berhasil diubah!'
-    
-    setTimeout(() => { successMessage.value = '' }, 3000)
+    toast.success('Berhasil', 'Password berhasil diubah!')
   } catch (e: unknown) {
     const err = e as { response?: { data?: Record<string, string[]> } }
     const data = err.response?.data
     if (data) {
       const firstError = Object.values(data)[0]
-      errorMessage.value = Array.isArray(firstError) ? (firstError[0] ?? 'Gagal mengubah password') : String(firstError)
+      const msg = Array.isArray(firstError) ? (firstError[0] ?? 'Gagal mengubah password') : String(firstError)
+      toast.error('Gagal', msg)
     } else {
-      errorMessage.value = 'Gagal mengubah password'
+      toast.error('Gagal', 'Gagal mengubah password')
     }
   } finally {
     isSaving.value = false
@@ -132,14 +124,6 @@ function getInitials(): string {
       <h1 class="text-2xl font-bold font-display text-slate-800">Pengaturan Profil</h1>
       <p class="text-slate-500 mt-1">Kelola informasi akun dan keamanan Anda</p>
     </motion.div>
-
-    <!-- Success/Error Messages -->
-    <div v-if="successMessage" class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl">
-      {{ successMessage }}
-    </div>
-    <div v-if="errorMessage" class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl">
-      {{ errorMessage }}
-    </div>
 
     <!-- Profile Card -->
     <motion.div

@@ -5,11 +5,13 @@ import { Pencil, CalendarPlus, Wallet, LogOut, X } from 'lucide-vue-next'
 import { usePenyewaStore, type Penyewa } from '@/stores/penyewa'
 import { useKeuanganStore } from '@/stores/keuangan'
 import { useKamarStore } from '@/stores/kamar'
+import { useToastStore } from '@/stores/toast'
 import { formatDateShort, addMonths, formatRupiah } from '@/services/utils'
 
 const penyewaStore = usePenyewaStore()
 const keuanganStore = useKeuanganStore()
 const kamarStore = useKamarStore()
+const toast = useToastStore()
 
 // Table state
 const search = ref('')
@@ -89,7 +91,7 @@ function openCheckoutModal(penyewa: Penyewa) {
 // === SUBMIT HANDLERS ===
 async function submitEdit() {
   if (!selectedPenyewa.value || !editForm.value.nama_lengkap || !editForm.value.nomor_hp) {
-    alert('Nama dan nomor HP wajib diisi!')
+    toast.warning('Validasi', 'Nama dan nomor HP wajib diisi!')
     return
   }
   isSubmitting.value = true
@@ -100,10 +102,10 @@ async function submitEdit() {
       durasi_sewa_bulan: editForm.value.durasi_sewa_bulan
     })
     showEditModal.value = false
-    alert('Data penyewa berhasil diperbarui!')
+    toast.success('Berhasil', 'Data penyewa berhasil diperbarui!')
   } catch (e) {
     console.error(e)
-    alert('Gagal memperbarui data penyewa')
+    toast.error('Gagal', 'Gagal memperbarui data penyewa')
   } finally {
     isSubmitting.value = false
   }
@@ -111,7 +113,7 @@ async function submitEdit() {
 
 async function submitPayment() {
   if (!selectedPenyewa.value || !paymentForm.value.jumlah) {
-    alert('Jumlah pembayaran wajib diisi!')
+    toast.warning('Validasi', 'Jumlah pembayaran wajib diisi!')
     return
   }
   isSubmitting.value = true
@@ -122,10 +124,10 @@ async function submitPayment() {
       keterangan: paymentForm.value.keterangan
     })
     showPaymentModal.value = false
-    alert('Pembayaran berhasil dicatat!')
+    toast.success('Berhasil', 'Pembayaran berhasil dicatat!')
   } catch (e) {
     console.error(e)
-    alert('Gagal mencatat pembayaran')
+    toast.error('Gagal', 'Gagal mencatat pembayaran')
   } finally {
     isSubmitting.value = false
   }
@@ -138,10 +140,10 @@ async function submitExtend() {
     const newDurasi = selectedPenyewa.value.durasi_sewa_bulan + extendForm.value.tambahan_bulan
     await penyewaStore.update(selectedPenyewa.value.id, { durasi_sewa_bulan: newDurasi })
     showExtendModal.value = false
-    alert(`Sewa berhasil diperpanjang ${extendForm.value.tambahan_bulan} bulan!`)
+    toast.success('Berhasil', `Sewa berhasil diperpanjang ${extendForm.value.tambahan_bulan} bulan!`)
   } catch (e) {
     console.error(e)
-    alert('Gagal memperpanjang sewa')
+    toast.error('Gagal', 'Gagal memperpanjang sewa')
   } finally {
     isSubmitting.value = false
   }
@@ -154,10 +156,10 @@ async function submitCheckout() {
     await penyewaStore.remove(selectedPenyewa.value.id)
     await kamarStore.fetchAll()
     showCheckoutModal.value = false
-    alert('Penyewa berhasil di-check out! Kamar sekarang kosong.')
+    toast.success('Check-Out Berhasil', 'Penyewa telah keluar. Kamar sekarang kosong.')
   } catch (e) {
     console.error(e)
-    alert('Gagal check out penyewa')
+    toast.error('Gagal', 'Gagal check out penyewa')
   } finally {
     isSubmitting.value = false
   }

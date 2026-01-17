@@ -2,12 +2,17 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
 
-const API_BASE = 'http://127.0.0.1:8000/api/'
+// Use relative path so requests go through Vite proxy (solves cross-origin cookie issues)
+const API_BASE = '/api/'
 
-// Axios instance with credentials for HttpOnly cookies
+// Storage keys for tokens (development mode uses localStorage for refresh token)
+const ACCESS_TOKEN_KEY = 'sultan_access_token'
+const REFRESH_TOKEN_KEY = 'sultan_refresh_token'
+
+// Axios instance for auth requests
 const authApi = axios.create({
   baseURL: API_BASE,
-  withCredentials: true, // Required for HttpOnly cookies
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -37,9 +42,30 @@ export interface RegisterData {
 export const useAuthStore = defineStore('auth', () => {
   // State
   const user = ref<User | null>(null)
-  const accessToken = ref<string | null>(null) // Stored in memory, NOT localStorage
+  const accessToken = ref<string | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+
+  // Initialize tokens from storage on store creation
+  function loadTokensFromStorage() {
+    accessToken.value = localStorage.getItem(ACCESS_TOKEN_KEY)
+  }
+
+  // Save tokens to storage
+  function saveTokensToStorage(access: string, refresh?: string) {
+    accessToken.value = access
+    localStorage.setItem(ACCESS_TOKEN_KEY, access)
+    if (refresh) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, refresh)
+    }
+  }
+
+  // Clear tokens from storage
+  function clearTokensFromStorage() {
+    accessToken.value = null
+    localStorage.removeItem(ACCESS_TOKEN_KEY)
+    localStorage.removeItem(REFRESH_TOKEN_KEY)
+  }
 
   // Computed
   const isAuthenticated = computed(() => !!accessToken.value)
@@ -60,9 +86,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await authApi.post('auth/login/', credentials)
       
-      // dj-rest-auth with JWT returns access token in response
-      // Refresh token is set as HttpOnly cookie automatically
-      accessToken.value = response.data.access
+      // Store tokens (both access and refresh)
+      saveTokensToStorage(response.data.access, response.data.refresh)
       
       // Fetch user info
       await fetchUser()
@@ -91,14 +116,13 @@ export const useAuthStore = defineStore('auth', () => {
       
       // If registration returns tokens, user is logged in
       if (response.data.access) {
-        accessToken.value = response.data.access
+        saveTokensToStorage(response.data.access, response.data.refresh)
         await fetchUser()
       }
       
       return { success: true }
     } catch (e: unknown) {
       const err = e as { response?: { data?: Record<string, string[]> } }
-      // Parse validation errors
       const data = err.response?.data
       if (data) {
         const firstError = Object.values(data)[0]
@@ -113,30 +137,46 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Logout - clears tokens and calls backend to blacklist refresh token
+   * Logout - clears tokens
    */
   async function logout() {
     try {
-      await authApi.post('auth/logout/')
+      // Include auth header for proper logout on server
+      await authApi.post('auth/logout/', {}, {
+        headers: {
+          Authorization: `Bearer ${accessToken.value}`
+        }
+      })
     } catch {
-      // Ignore errors on logout
+      // Ignore errors on logout - tokens will be cleared anyway
     } finally {
-      accessToken.value = null
+      clearTokensFromStorage()
       user.value = null
     }
   }
 
   /**
-   * Refresh access token using HttpOnly refresh cookie
+   * Refresh access token using stored refresh token
    */
   async function refreshToken() {
+    const storedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY)
+    
+    if (!storedRefreshToken) {
+      clearTokensFromStorage()
+      return false
+    }
+
     try {
-      const response = await authApi.post('auth/token/refresh/')
-      accessToken.value = response.data.access
+      const response = await authApi.post('auth/token/refresh/', {
+        refresh: storedRefreshToken
+      })
+      
+      // Update access token
+      saveTokensToStorage(response.data.access, response.data.refresh || storedRefreshToken)
       return true
     } catch {
       // Refresh failed - user needs to re-login
-      accessToken.value = null
+      clearTokensFromStorage()
       user.value = null
       return false
     }
@@ -160,12 +200,22 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * Initialize auth state on app load
-   * Tries to refresh token from HttpOnly cookie
+   * Tries to restore session from stored tokens
    */
   async function initAuth() {
-    const refreshed = await refreshToken()
-    if (refreshed) {
+    loadTokensFromStorage()
+    
+    if (accessToken.value) {
+      // Try to fetch user with existing access token
       await fetchUser()
+      
+      if (!user.value) {
+        // Access token expired, try refresh
+        const refreshed = await refreshToken()
+        if (refreshed) {
+          await fetchUser()
+        }
+      }
     }
   }
 
@@ -178,11 +228,18 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * Social login - redirect to provider
-   * allauth uses /accounts/{provider}/login/ path
+   * IMPORTANT: OAuth flow must go directly to Django (not through Vite proxy)
+   * because Google redirects back to Django's callback URL directly.
    */
   function socialLogin(provider: 'google' | 'facebook') {
-    // Redirect to allauth OAuth flow at /accounts/{provider}/login/
     window.location.href = `http://127.0.0.1:8000/accounts/${provider}/login/`
+  }
+
+  /**
+   * Handle social auth callback - store tokens from URL params
+   */
+  function handleSocialAuthCallback(access: string, refresh?: string) {
+    saveTokensToStorage(access, refresh || '')
   }
 
   /**
@@ -190,6 +247,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   function setAccessToken(token: string) {
     accessToken.value = token
+    localStorage.setItem(ACCESS_TOKEN_KEY, token)
   }
 
   return {
@@ -212,7 +270,7 @@ export const useAuthStore = defineStore('auth', () => {
     initAuth,
     getAuthHeader,
     socialLogin,
+    handleSocialAuthCallback,
     setAccessToken
   }
 })
-

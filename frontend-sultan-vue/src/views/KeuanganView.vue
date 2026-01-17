@@ -6,12 +6,14 @@ import { Bar } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js'
 import { useKeuanganStore } from '@/stores/keuangan'
 import { usePenyewaStore } from '@/stores/penyewa'
+import { useToastStore } from '@/stores/toast'
 import { formatRupiah } from '@/services/utils'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 const keuanganStore = useKeuanganStore()
 const penyewaStore = usePenyewaStore()
+const toast = useToastStore()
 
 // Modal state
 const showPaymentModal = ref(false)
@@ -49,7 +51,7 @@ function closePaymentModal() {
 
 async function submitPayment() {
   if (!paymentForm.value.penyewa || !paymentForm.value.jumlah) {
-    alert('Pilih penyewa dan masukkan jumlah!')
+    toast.warning('Validasi', 'Pilih penyewa dan masukkan jumlah!')
     return
   }
   
@@ -61,10 +63,10 @@ async function submitPayment() {
       keterangan: paymentForm.value.keterangan
     })
     closePaymentModal()
-    alert('Pembayaran berhasil disimpan!')
+    toast.success('Berhasil', 'Pembayaran berhasil disimpan!')
   } catch (e) {
     console.error(e)
-    alert('Gagal menyimpan pembayaran')
+    toast.error('Gagal', 'Gagal menyimpan pembayaran')
   } finally {
     isSubmitting.value = false
   }

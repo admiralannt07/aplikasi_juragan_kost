@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { motion } from 'motion-v'
-import { Mail, Lock, User, Eye, EyeOff, Building } from 'lucide-vue-next'
+import { Lock, User, Eye, EyeOff } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -80,7 +80,7 @@ function handleSocialLogin(provider: 'google' | 'facebook') {
         >
           <!-- Logo -->
           <div class="mb-8">
-            <Building class="w-20 h-20 mx-auto text-sultan-gold mb-4" />
+            <img src="/logo.png" alt="Sultan Logo" class="w-30 h-30 mx-auto" />
             <h1 class="font-display text-5xl font-bold tracking-wider">
               SULTAN<span class="text-sultan-gold">.</span>
             </h1>

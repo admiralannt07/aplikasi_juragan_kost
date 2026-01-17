@@ -1,4 +1,5 @@
 from rest_framework import viewsets, filters
+from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import TipeKamar, Kamar, Penyewa, RiwayatPembayaran
 from .serializers import (
@@ -7,25 +8,28 @@ from .serializers import (
 )
 
 
-# 1. ViewSet Tipe Kamar
+# 1. ViewSet Tipe Kamar (No pagination - usually small dataset)
 class TipeKamarViewSet(viewsets.ModelViewSet):
     queryset = TipeKamar.objects.all()
     serializer_class = TipeKamarSerializer
+    pagination_class = None  # Disable server pagination, frontend handles it
 
-# 2. ViewSet Kamar (Bisa filter Status & Lantai)
+# 2. ViewSet Kamar (No pagination - frontend handles pagination)
 class KamarViewSet(viewsets.ModelViewSet):
     queryset = Kamar.objects.all().order_by('nomor_kamar')
     serializer_class = KamarSerializer
+    pagination_class = None  # Disable server pagination, frontend handles it
     
     # Fitur P10: Filtering & Searching
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['status', 'lantai', 'tipe'] # Bisa filter: ?status=KOSONG
     search_fields = ['nomor_kamar'] # Bisa cari: ?search=A01
 
-# 3. ViewSet Penyewa (Bisa cari Nama)
+# 3. ViewSet Penyewa (No pagination - frontend handles pagination)
 class PenyewaViewSet(viewsets.ModelViewSet):
     queryset = Penyewa.objects.all().order_by('-id')
     serializer_class = PenyewaSerializer
+    pagination_class = None  # Disable server pagination, frontend handles it
     
     # TAMBAHIN DjangoFilterBackend DI SINI
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
@@ -35,10 +39,11 @@ class PenyewaViewSet(viewsets.ModelViewSet):
     
     search_fields = ['nama_lengkap', 'nomor_hp']
 
-# 4. ViewSet Riwayat Bayar
+# 4. ViewSet Riwayat Bayar (Keep pagination - can grow large)
 class RiwayatPembayaranViewSet(viewsets.ModelViewSet):
     queryset = RiwayatPembayaran.objects.all().order_by('-tanggal_bayar')
     serializer_class = RiwayatPembayaranSerializer
+    # Uses default pagination from settings (PAGE_SIZE: 10)
     
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['penyewa'] # Liat histori bayar si Budi doang

@@ -3,9 +3,11 @@ import { ref, computed, onMounted } from 'vue'
 import { motion } from 'motion-v'
 import { Plus, Pencil, Trash2, X } from 'lucide-vue-next'
 import { useKamarStore, type Kamar } from '@/stores/kamar'
+import { useToastStore } from '@/stores/toast'
 import { formatRupiah } from '@/services/utils'
 
 const kamarStore = useKamarStore()
+const toast = useToastStore()
 
 // Table state
 const search = ref('')
@@ -86,7 +88,7 @@ function openDeleteModal(kamar: Kamar) {
 // === SUBMIT HANDLERS ===
 async function submitAdd() {
   if (!addForm.value.nomor_kamar || !addForm.value.tipe) {
-    alert('Nomor kamar dan tipe wajib diisi!')
+    toast.warning('Validasi', 'Nomor kamar dan tipe wajib diisi!')
     return
   }
   isSubmitting.value = true
@@ -98,10 +100,10 @@ async function submitAdd() {
       status: addForm.value.status as 'KOSONG' | 'ISI' | 'MAINTENANCE'
     })
     showAddModal.value = false
-    alert('Kamar berhasil ditambahkan!')
+    toast.success('Berhasil', 'Kamar berhasil ditambahkan!')
   } catch (e) {
     console.error(e)
-    alert('Gagal menambah kamar')
+    toast.error('Gagal', 'Gagal menambah kamar')
   } finally {
     isSubmitting.value = false
   }
@@ -118,10 +120,10 @@ async function submitEdit() {
       status: editForm.value.status as 'KOSONG' | 'ISI' | 'MAINTENANCE'
     })
     showEditModal.value = false
-    alert('Kamar berhasil diperbarui!')
+    toast.success('Berhasil', 'Kamar berhasil diperbarui!')
   } catch (e) {
     console.error(e)
-    alert('Gagal memperbarui kamar')
+    toast.error('Gagal', 'Gagal memperbarui kamar')
   } finally {
     isSubmitting.value = false
   }
@@ -133,10 +135,10 @@ async function submitDelete() {
   try {
     await kamarStore.remove(selectedKamar.value.id)
     showDeleteModal.value = false
-    alert('Kamar berhasil dihapus!')
+    toast.success('Berhasil', 'Kamar berhasil dihapus!')
   } catch (e) {
     console.error(e)
-    alert('Gagal menghapus kamar')
+    toast.error('Gagal', 'Gagal menghapus kamar')
   } finally {
     isSubmitting.value = false
   }

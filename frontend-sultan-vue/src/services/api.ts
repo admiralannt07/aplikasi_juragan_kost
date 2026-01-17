@@ -1,7 +1,8 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig, type AxiosError } from 'axios'
 import { useAuthStore } from '@/stores/auth'
 
-const API_BASE = 'http://127.0.0.1:8000/api/'
+// Use relative path so requests go through Vite proxy (solves cross-origin cookie issues)
+const API_BASE = '/api/'
 
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE,
