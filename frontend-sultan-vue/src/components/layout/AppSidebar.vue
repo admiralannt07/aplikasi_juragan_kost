@@ -46,11 +46,18 @@ async function handleLogout() {
 <template>
   <aside class="w-64 bg-sultan-dark text-white flex flex-col shadow-2xl z-20">
     <!-- Logo -->
-    <div class="p-6 border-b border-slate-700">
-      <h1 class="font-display text-3xl font-bold tracking-wider text-center">
-        SULTAN<span class="text-sultan-gold">.</span>
-      </h1>
-      <p class="text-xs text-slate-400 text-center mt-1 tracking-widest">ESTATE MANAGEMENT</p>
+    <div class="p-6 border-b border-slate-700 flex flex-col items-center gap-3">
+      <img
+        src="/logo.png"
+        alt="Sultan Estate Management logo"
+        class="h-16 w-16 object-contain rounded-2xl shadow-lg"
+      />
+      <div class="text-center">
+        <h1 class="font-display text-3xl font-bold tracking-wider">
+          SULTAN<span class="text-sultan-gold">.</span>
+        </h1>
+        <p class="text-xs text-slate-400 mt-1 tracking-widest">ESTATE MANAGEMENT</p>
+      </div>
     </div>
 
     <!-- User Info -->
